@@ -36,6 +36,24 @@ public section.
       attr3 type scx_attrname value '',
       attr4 type scx_attrname value '',
     end of HAS_NO_TITLE .
+  constants:
+    begin of HAS_NO_DESCRIPTION,
+      msgid type symsgid value 'ZDLPM',
+      msgno type symsgno value '003',
+      attr1 type scx_attrname value '',
+      attr2 type scx_attrname value '',
+      attr3 type scx_attrname value '',
+      attr4 type scx_attrname value '',
+    end of HAS_NO_DESCRIPTION .
+  constants:
+    begin of HAS_NO_OWNER,
+      msgid type symsgid value 'ZDLPM',
+      msgno type symsgno value '004',
+      attr1 type scx_attrname value '',
+      attr2 type scx_attrname value '',
+      attr3 type scx_attrname value '',
+      attr4 type scx_attrname value '',
+    end of HAS_NO_OWNER .
 
   methods CONSTRUCTOR
     importing

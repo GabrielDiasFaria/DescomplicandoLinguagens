@@ -42,5 +42,19 @@ CLASS ZDLPMCL_002 IMPLEMENTATION.
       ).
     ENDIF.
 
+    " Não pode Salvar Projeto sem Responsável
+    IF ls_projeto-responsavel IS INITIAL.
+      RAISE EXCEPTION NEW zdlpmcl_003(
+        textid = zdlpmcl_003=>has_no_owner
+      ).
+    ENDIF.
+
+    " Não pode Salvar Projeto sem Descrição
+    IF ls_projeto-descricao IS INITIAL.
+      RAISE EXCEPTION NEW zdlpmcl_003(
+        textid = zdlpmcl_003=>has_no_description
+      ).
+    ENDIF.
+
   ENDMETHOD.
 ENDCLASS.

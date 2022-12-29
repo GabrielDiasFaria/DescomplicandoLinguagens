@@ -14,6 +14,8 @@ public section.
   methods CREATE
     changing
       !IS_DATA type ANY
+    returning
+      value(RS_RESULT) type BAPIRET2
     raising
       ZDLPMCL_003 .
   methods UPDATE
@@ -74,12 +76,22 @@ CLASS ZDLPMCL_001 IMPLEMENTATION.
     CATCH zdlpmcl_003 INTO DATA(exc).
       " Erro disparado!
       DATA(lv_msg) = exc->get_text( ).
-      MESSAGE |ERROR - { lv_msg }| TYPE 'E'.
+
+      rs_result = VALUE bapiret2(
+        type    = 'E'
+        message = lv_msg
+      ).
+
       RETURN.
     ENDTRY.
 
 *   Criar o Registro!
     MODIFY (av_table) FROM is_data.
+
+    rs_result = VALUE bapiret2(
+      type    = 'S'
+      message = 'Criado com sucesso!'
+    ).
 
   ENDMETHOD.
 
