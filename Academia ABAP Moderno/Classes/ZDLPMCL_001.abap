@@ -21,16 +21,21 @@ public section.
   methods UPDATE
     changing
       !IS_DATA type ANY
+    returning
+      value(RS_RESULT) type BAPIRET2
     raising
       ZDLPMCL_003 .
   methods DELETE
     importing
       !IS_DATA type ANY
+    returning
+      value(RS_RESULT) type BAPIRET2
     raising
       ZDLPMCL_003 .
   methods VALIDATE
     importing
       !IS_DATA type ANY
+      !IV_IS_DELETE type XFELD optional
     raising
       ZDLPMCL_003 .
 protected section.
@@ -89,8 +94,9 @@ CLASS ZDLPMCL_001 IMPLEMENTATION.
     MODIFY (av_table) FROM is_data.
 
     rs_result = VALUE bapiret2(
-      type    = 'S'
-      message = 'Criado com sucesso!'
+      type        = 'S'
+      message     = 'Criado com sucesso!'
+      message_v1  = <fs_id>
     ).
 
   ENDMETHOD.
@@ -98,7 +104,31 @@ CLASS ZDLPMCL_001 IMPLEMENTATION.
 
   METHOD delete.
 
+*   Buscando Referência ID
+    ASSIGN COMPONENT `ID`  OF STRUCTURE is_data TO FIELD-SYMBOL(<fs_delete_id>).
+
+    TRY .
+      me->validate( EXPORTING is_data = is_data iv_is_delete = abap_true ).
+    CATCH zdlpmcl_003 INTO DATA(exc).
+      " Erro disparado!
+      DATA(lv_msg) = exc->get_text( ).
+
+      rs_result = VALUE bapiret2(
+        type    = 'E'
+        message = lv_msg
+      ).
+
+      RETURN.
+    ENDTRY.
+
+*   Delete o Registro!
     DELETE (me->av_table) FROM is_data.
+
+    rs_result = VALUE bapiret2(
+      type        = 'S'
+      message     = 'Modificado com sucesso!'
+      message_v1  = <fs_delete_id>
+    ).
 
   ENDMETHOD.
 
@@ -123,17 +153,31 @@ CLASS ZDLPMCL_001 IMPLEMENTATION.
       <fs_modificado_em>  = lv_timestamp.
     ENDIF.
 
+*   Buscando Referência ID
+    ASSIGN COMPONENT `ID`  OF STRUCTURE is_data TO FIELD-SYMBOL(<fs_modificado_id>).
+
     TRY .
       me->validate( is_data ).
     CATCH zdlpmcl_003 INTO DATA(exc).
       " Erro disparado!
       DATA(lv_msg) = exc->get_text( ).
-      MESSAGE |ERROR - { lv_msg }| TYPE 'E'.
+
+      rs_result = VALUE bapiret2(
+        type    = 'E'
+        message = lv_msg
+      ).
+
       RETURN.
     ENDTRY.
 
 *   Modificar o Registro!
     MODIFY (av_table) FROM is_data.
+
+    rs_result = VALUE bapiret2(
+      type        = 'S'
+      message     = 'Modificado com sucesso!'
+      message_v1  = <fs_modificado_id>
+    ).
 
   endmethod.
 

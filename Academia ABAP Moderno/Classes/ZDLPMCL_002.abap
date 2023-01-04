@@ -28,6 +28,9 @@ CLASS ZDLPMCL_002 IMPLEMENTATION.
       ).
     ENDIF.
 
+*   Só continua as validações caso não seja Deleção
+    CHECK iv_is_delete IS INITIAL.
+
     " Não pode Salvar Projeto sem Título
     IF ls_projeto-titulo IS INITIAL.
       RAISE EXCEPTION NEW zdlpmcl_003(
