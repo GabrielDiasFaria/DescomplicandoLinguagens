@@ -1,0 +1,10 @@
+TCTRL_ZDLFAJRT_001	
+VIM_FRAME_FIELD	____________________________________________________________
+*ZDLFAJRT_001-STATUS	Status
+*ZDLFAJRT_001-DESCRICAO	Descrição
+VIM_MARKED	
+ZDLFAJRT_001-STATUS	
+ZDLFAJRT_001-DESCRICAO	_____________________________________________
+VIM_POSI_PUSH	____________________
+VIM_POSITION_INFO	______________________________
+OK_CODE	____________________

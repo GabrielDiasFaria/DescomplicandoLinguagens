@@ -1,0 +1,3 @@
+Field	Key	Data-element	Data-type	Length	Decimals	Domain	Check-table	Include-table
+STATUS		ZDLFAJREL_001	CHAR	000001	000000	ZDLFAJRDM_001		
+DESCRIPTION		CHAR40	CHAR	000040	000000	CHAR40		

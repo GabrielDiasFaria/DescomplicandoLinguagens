@@ -1,0 +1,16 @@
+*&---------------------------------------------------------------------*
+*& Report ZDLFAJRRP_008
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zdlfajrrp_008.
+
+* MESSAGE 'Olá!' TYPE 'S'.
+* MESSAGE 'Olá!' TYPE 'I'.
+* MESSAGE 'Olá!' TYPE 'E'.
+* MESSAGE i002(zdlfajr) WITH sy-uname.
+* MESSAGE s003(zdlfajr) WITH '10004578'.
+* MESSAGE s004(zdlfajr) WITH sy-uname '10004578'.
+ MESSAGE i005(zdlfajr) WITH 'A'.
+* MESSAGE s005(zdlfajr) WITH 'B'.
+* MESSAGE s005(zdlfajr) WITH 'C'.

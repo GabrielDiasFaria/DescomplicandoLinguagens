@@ -1,0 +1,6 @@
+Selection-text
+P_CARRID	@AV@ Companhia Aerea
+RB_ANLI	@05@ Visão Analítica
+RB_SINT	@06@ Visão Sintética
+S_CONNID	@91@ Destino
+S_FLDATE	@1U@ Data Voo

@@ -1,0 +1,10 @@
+*---------------------------------------------------------------------*
+*    program for:   TABLEPROC_ZDLFAJRT_001
+*   generation date: 13.03.2023 at 22:10:58
+*   view maintenance generator version: #001407#
+*---------------------------------------------------------------------*
+FUNCTION TABLEPROC_ZDLFAJRT_001        .
+
+  PERFORM TABLEPROC.
+
+ENDFUNCTION.

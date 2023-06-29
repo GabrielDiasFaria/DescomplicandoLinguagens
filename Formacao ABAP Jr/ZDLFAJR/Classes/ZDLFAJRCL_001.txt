@@ -1,0 +1,89 @@
+CLASS zdlfajrcl_001 DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    METHODS modificar_atividade
+      IMPORTING
+        !is_atividade TYPE zdlfajrt_002 .
+    METHODS deletar_atividade
+      IMPORTING
+        !iv_atividade       TYPE zdlfajrel_002
+      RETURNING
+        VALUE(rv_operation) TYPE char1 .
+    METHODS selecionar_atividades
+      EXPORTING
+        !et_atividades TYPE zdlfajrtt_002 .
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+
+ENDCLASS.
+
+CLASS zdlfajrcl_001 IMPLEMENTATION.
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZDLFAJRCL_001->DELETAR_ATIVIDADE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_ATIVIDADE                   TYPE        ZDLFAJREL_002
+* | [<-()] RV_OPERATION                   TYPE        CHAR1
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD deletar_atividade.
+
+    DELETE
+      FROM zdlfajrt_002
+      WHERE atividade = iv_atividade
+      .
+
+    " 1 - Errado, 0 Certo
+    IF sy-subrc EQ 0.
+      rv_operation = 'S'.
+    ELSE.
+      rv_operation = 'E'.
+    ENDIF.
+
+  ENDMETHOD.
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZDLFAJRCL_001->MODIFICAR_ATIVIDADE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IS_ATIVIDADE                   TYPE        ZDLFAJRT_002
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD modificar_atividade.
+
+    " Declarei uma linha da tabela
+    DATA: ls_atividade TYPE zdlfajrt_002.
+
+    " Movi os dados do parametro de entrada para a nova variável
+    ls_atividade = is_atividade.
+
+    ls_atividade-modificado_por     = sy-uname.
+    ls_atividade-modificado_em_data = sy-datum.
+    ls_atividade-modificado_em_hora = sy-uzeit.
+
+    " Modify:
+    " Se existir, atualiza, se não, cria
+    MODIFY zdlfajrt_002
+      FROM ls_atividade.
+
+  ENDMETHOD.
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZDLFAJRCL_001->SELECIONAR_ATIVIDADES
+* +-------------------------------------------------------------------------------------------------+
+* | [<---] ET_ATIVIDADES                  TYPE        ZDLFAJRTT_002
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD selecionar_atividades.
+
+    SELECT *
+      FROM zdlfajrt_002
+*      INTO TABLE @DATA(lt_atividades)
+      INTO TABLE @et_atividades
+      .
+
+  ENDMETHOD.
+
+ENDCLASS.

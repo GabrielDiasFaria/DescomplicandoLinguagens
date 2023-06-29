@@ -1,0 +1,21 @@
+* regenerated at 13.03.2023 22:10:58
+*******************************************************************
+*   System-defined Include-files.                                 *
+*******************************************************************
+  INCLUDE LZDLFAJRT_001TOP.                  " Global Declarations
+  INCLUDE LZDLFAJRT_001UXX.                  " Function Modules
+
+*******************************************************************
+*   User-defined Include-files (if necessary).                    *
+*******************************************************************
+* INCLUDE LZDLFAJRT_001F...                  " Subroutines
+* INCLUDE LZDLFAJRT_001O...                  " PBO-Modules
+* INCLUDE LZDLFAJRT_001I...                  " PAI-Modules
+* INCLUDE LZDLFAJRT_001E...                  " Events
+* INCLUDE LZDLFAJRT_001P...                  " Local class implement.
+* INCLUDE LZDLFAJRT_001T99.                  " ABAP Unit tests
+  INCLUDE LZDLFAJRT_001F00                        . " subprograms
+  INCLUDE LZDLFAJRT_001I00                        . " PAI modules
+  INCLUDE LSVIMFXX                                . " subprograms
+  INCLUDE LSVIMOXX                                . " PBO modules
+  INCLUDE LSVIMIXX                                . " PAI modules

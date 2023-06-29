@@ -1,0 +1,17 @@
+*&---------------------------------------------------------------------*
+*& Report ZDLFAJRRP_007
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zdlfajrrp_007.
+
+" Definition     - Definição da Classe
+" Implementation - Implementação da Classe
+
+INCLUDE zdlfajrrp_007_i.
+
+INITIALIZATION.
+  DATA(go_atividades) = NEW zdlfajrcl_001( ).
+  DATA(lo_atividades) = NEW lcl_007( ).
+
+  MESSAGE s004(zdlfajr) WITH sy-uname '10004578'.

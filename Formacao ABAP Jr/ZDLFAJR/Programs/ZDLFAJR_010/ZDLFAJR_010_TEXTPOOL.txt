@@ -1,0 +1,7 @@
+Text-symbols
+001	Filtros
+
+Selection-text
+P_CARRID	@AV@ Companhia Aerea
+S_CONNID	@91@ Destino
+S_FLDATE	@1U@ Data Voo

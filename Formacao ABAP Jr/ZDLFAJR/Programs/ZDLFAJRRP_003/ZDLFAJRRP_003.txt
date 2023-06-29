@@ -1,0 +1,54 @@
+*&---------------------------------------------------------------------*
+*& Report ZDLPMJRRP_003
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZDLFAJRRP_003.
+
+*1 - A  Em Aberto
+*2 - V  Validado
+*3 - S  Em Separação Estoque
+*4 - R  Em Rota
+*5 - F  Finalizado
+
+" Utilizando uma estrutura do dicionário de dados
+DATA: ls_status TYPE zdlfajres_001,
+      lt_status TYPE zdlfajrtt_001.
+
+ls_status-status      = 'A'.
+ls_status-description = 'Em Aberto'.
+APPEND ls_status TO lt_status.
+
+ls_status-status      = 'V'.
+ls_status-description = 'Validado'.
+APPEND ls_status TO lt_status.
+
+ls_status-status      = 'S'.
+ls_status-description = 'Em Separação Estoque'.
+APPEND ls_status TO lt_status.
+
+ls_status-status      = 'R'.
+ls_status-description = 'Em Rota'.
+APPEND ls_status TO lt_status.
+
+ls_status-status      = 'F'.
+ls_status-description = 'Finalizado'.
+APPEND ls_status TO lt_status.
+
+*WRITE: / lt_status[ 5 ]-status, ' - ', lt_status[ 5 ]-description.
+
+LOOP AT lt_status INTO ls_status.
+*  WRITE: / ls_status-status, ' - ', ls_status-description.
+ENDLOOP.
+
+
+DATA(lt_status_inline) = VALUE zdlfajrtt_001(
+  ( status = 'A' description = 'Em Aberto' )
+  ( status = 'V' description = 'Validado' )
+  ( status = 'S' description = 'Em Separação Estoque' )
+  ( status = 'R' description = 'Em Rot' )
+  ( status = 'F' description = 'Finalizado' )
+).
+LOOP AT lt_status_inline INTO ls_status.
+  WRITE: / ls_status-status, ' - ', ls_status-description.
+ENDLOOP.

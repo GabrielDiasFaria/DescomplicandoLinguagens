@@ -1,0 +1,79 @@
+*&---------------------------------------------------------------------*
+*& Report ZDLFAJR_009
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zdlfajr_009.
+
+TABLES: bkpf, sscrfields.
+
+
+" Parameters - Parâmetros
+" São filtros únicos, quando se quer filtrar uma coisa especifica.
+PARAMETERS: p_belnr  TYPE bkpf-belnr.
+PARAMETERS: p_belnr2 TYPE belnr_d.
+
+" Options - Ranges
+SELECT-OPTIONS: s_blart FOR bkpf-blart.
+
+" Quebra de Linha
+SELECTION-SCREEN SKIP 1.
+
+" Checkbox - True ou False
+PARAMETERS: cx_bloq AS CHECKBOX.
+
+" Quebra de Linha
+SELECTION-SCREEN SKIP 1.
+
+" RadioButton - Uma das Opções
+PARAMETERS: rb_cred RADIOBUTTON GROUP rbg1,
+            rb_debt RADIOBUTTON GROUP rbg1.
+
+" Quebra de Linha
+SELECTION-SCREEN SKIP 1.
+
+" Lisbox - Lista de Seleção
+PARAMETERS: lb_typ AS LISTBOX VISIBLE LENGTH 30 MODIF ID typ.
+
+" Quebra de Linha
+SELECTION-SCREEN SKIP 1.
+
+" Blocos de Seleção
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE text-001.
+  PARAMETERS: p_block TYPE belnr_d.
+SELECTION-SCREEN END OF BLOCK b1.
+
+" Button - Screen
+SELECTION-SCREEN PUSHBUTTON /1(20) p_but1 USER-COMMAND but1.
+" Button - Toolbar
+SELECTION-SCREEN FUNCTION KEY 1.
+
+
+INITIALIZATION.
+  p_but1 = '@01@ Carrega Aqui'.
+  sscrfields-functxt_01 = '@01@ Carrega Aqui'.
+
+AT SELECTION-SCREEN.
+  IF sscrfields-ucomm = 'BUT1'.
+    MESSAGE 'Clicou no botão da screen' TYPE 'S'.
+  ELSEIF sscrfields-ucomm = 'FC01'.
+    MESSAGE 'Clicou no botão da toolbar' TYPE 'I'.
+  ENDIF.
+
+
+AT SELECTION-SCREEN OUTPUT.
+
+  DATA(lt_values) = VALUE vrm_values(
+    ( key = '1' text = 'PDF' )
+    ( key = '2' text = 'Arquivo Texto' )
+    ( key = '3' text = 'Power Point' )
+    ( key = '4' text = 'Word' )
+  ).
+
+  CALL FUNCTION 'VRM_SET_VALUES'
+    EXPORTING
+      id              = 'LB_TYP'
+      values          = lt_values
+    EXCEPTIONS
+      id_illegal_name = 1
+      OTHERS          = 2.

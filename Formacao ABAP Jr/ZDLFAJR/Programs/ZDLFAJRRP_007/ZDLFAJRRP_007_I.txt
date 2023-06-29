@@ -1,0 +1,62 @@
+CLASS lcl_007 DEFINITION.
+
+  PUBLIC SECTION.
+    DATA: lv_datum TYPE dats.
+
+    METHODS:
+      modificar_atividade   IMPORTING VALUE(is_atividade) TYPE zdlfajrt_002,
+      deletar_atividade     IMPORTING VALUE(iv_atividade) TYPE zdlfajrel_002
+                            RETURNING VALUE(rv_operation) TYPE char1,
+      selecionar_atividade  EXPORTING VALUE(et_atividades) TYPE zdlfajrtt_002.
+
+
+ENDCLASS.
+
+CLASS lcl_007 IMPLEMENTATION.
+
+  METHOD modificar_atividade.
+
+    " Declarei uma linha da tabela
+    DATA: ls_atividade TYPE zdlfajrt_002.
+
+    " Movi os dados do parametro de entrada para a nova variável
+    ls_atividade = is_atividade.
+
+    ls_atividade-modificado_por     = sy-uname.
+    ls_atividade-modificado_em_data = sy-datum.
+    ls_atividade-modificado_em_hora = sy-uzeit.
+
+    " Modify:
+    " Se existir, atualiza, se não, cria
+    MODIFY zdlfajrt_002
+      FROM ls_atividade.
+
+  ENDMETHOD.
+
+  METHOD deletar_atividade.
+
+    DELETE
+      FROM zdlfajrt_002
+      WHERE atividade = iv_atividade
+      .
+
+    " 1 - Errado, 0 Certo
+    IF sy-subrc EQ 0.
+      rv_operation = 'S'.
+    ELSE.
+      rv_operation = 'E'.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD selecionar_atividade.
+
+    SELECT *
+      FROM zdlfajrt_002
+*      INTO TABLE @DATA(lt_atividades)
+      INTO TABLE @et_atividades
+      .
+
+  ENDMETHOD.
+
+ENDCLASS.

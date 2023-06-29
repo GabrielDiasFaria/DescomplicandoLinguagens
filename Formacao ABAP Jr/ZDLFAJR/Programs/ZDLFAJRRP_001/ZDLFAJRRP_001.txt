@@ -1,0 +1,20 @@
+*&---------------------------------------------------------------------*
+*& Report ZDLFAJRRP_001
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZDLFAJRRP_001.
+
+DATA(lv_string)  = 'Hello World'.
+DATA(lv_int)     = 2.
+DATA(lv_decimal) = '2.0'.
+DATA(lv_data)    = sy-datum.
+DATA(lv_hora)    = sy-uzeit.
+
+MESSAGE 'Olá!' TYPE 'S'.
+
+WRITE: /, lv_string.
+WRITE: /, lv_int.
+WRITE: /, lv_decimal.
+WRITE: /, lv_data.
+WRITE: /, lv_hora.

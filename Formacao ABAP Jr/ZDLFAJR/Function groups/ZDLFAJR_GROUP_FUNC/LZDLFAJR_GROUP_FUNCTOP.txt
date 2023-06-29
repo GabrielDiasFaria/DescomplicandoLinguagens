@@ -1,0 +1,3 @@
+FUNCTION-POOL ZDLFAJR_GROUP_FUNC.           "MESSAGE-ID ..
+
+* INCLUDE LZDLFAJR_GROUP_FUNCD...            " Local class definition

@@ -1,0 +1,10 @@
+Description	Mensagens ABAP Jr.
+Language	P
+
+Number	Message
+000	Olá!
+001	Tudo Bem!
+002	Tudo Bem &1!
+003	Ordem &1 criada com sucesso!
+004	Usuário &1 criou a ordem &2.
+005	Ordem não criada, motivo &1.

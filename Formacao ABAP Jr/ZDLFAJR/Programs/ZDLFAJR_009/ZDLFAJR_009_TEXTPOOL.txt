@@ -1,0 +1,12 @@
+Text-symbols
+001	Filtros de Bloco
+
+Selection-text
+CX_BLOQ	@02@ Bloqueado
+LB_TYP	Selecione o Tipo
+P_BELNR	@AR@ Documento FI
+P_BELNR2	@AR@ Documento FI Elemento
+P_BLOCK	Bloco
+RB_CRED	@4D@ Crédito
+RB_DEBT	@5D@ Débito
+S_BLART	@WR@ Tipo Documento

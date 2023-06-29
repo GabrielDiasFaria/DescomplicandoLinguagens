@@ -1,0 +1,48 @@
+FUNCTION zdlfajr_day_of_week.
+*"----------------------------------------------------------------------
+*"*"Interface local:
+*"  IMPORTING
+*"     REFERENCE(IV_DATE) TYPE  DATUM
+*"  EXPORTING
+*"     REFERENCE(EV_DAY_OF_WEEK) TYPE  WOTNR
+*"     REFERENCE(EV_DAY_OF_WEEK_TXT) TYPE  STRING
+*"----------------------------------------------------------------------
+
+
+  " Objetivo - Calcular o DIA DA SEMANA de uma DATA
+  " DATA          - Input   (DATS)
+  " DIA DA SEMANA - Output  (WOTNR)
+
+  " Pegamos uma data aleatória - Segunda-Feira
+  " Subtraimos a data input pela segunda-feira escolhida
+  " Resto da divisão por 7 (dias na semana)
+  " somo 1, para bater com de 1 a 7
+
+  DATA(lv_segunda_aleatoria) = `19790101`. " Segunda-Feira
+
+  DATA(lv_qtd_dias) = iv_date - lv_segunda_aleatoria. " Calcular o Número de Dias
+
+  DATA(lv_resto_divisao) = lv_qtd_dias MOD 7. " Resto da Divisão por 7 dias na semana
+
+  ev_day_of_week = lv_resto_divisao + 1. " Retorna adicionando 1 para começar com 1 na Segunda!
+
+*  ev_day_of_week = ( ( iv_date - lv_segunda_aleatoria ) MOD 7 ) + 1.
+
+  CASE ev_day_of_week.
+    WHEN 1.
+      ev_day_of_week_txt = `Segunda-Feira`.
+    WHEN 2.
+      ev_day_of_week_txt = `Terça-Feira`.
+    WHEN 3.
+      ev_day_of_week_txt = `Quarta-Feira`.
+    WHEN 4.
+      ev_day_of_week_txt = `Quinta-Feira`.
+    WHEN 5.
+      ev_day_of_week_txt = `Sexta-Feira`.
+    WHEN 6.
+      ev_day_of_week_txt = `Sábado`.
+    WHEN OTHERS.
+      ev_day_of_week_txt = `Domingo`.
+  ENDCASE.
+
+ENDFUNCTION.
