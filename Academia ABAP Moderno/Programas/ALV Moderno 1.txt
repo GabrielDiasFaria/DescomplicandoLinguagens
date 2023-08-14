@@ -1,0 +1,238 @@
+*&---------------------------------------------------------------------*
+*& Report YGDF1
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ygdf1.
+
+*- [ ]  ALV
+*    - [ ]  Projeto
+*        - [ ]  Navegando para Tela Projeto
+*        - [ ]  Botão para Finalizar Projeto
+*    - [ ]  % de Conclusão (Com Cor Vermelha (Até 30%), Amarela(Entre 31% e 99%) e Verde(100%))
+*    - [ ]  Total de Horas Estimadas
+*    - [ ]  Total de Horas Apontadas
+
+TABLES: zdlpmt_003, zdlpmt_009.
+
+SELECTION-SCREEN BEGIN OF BLOCK b1
+  WITH FRAME TITLE TEXT-001.
+  SELECT-OPTIONS: s_proj  FOR zdlpmt_003-id.
+SELECTION-SCREEN END OF BLOCK b1.
+
+CLASS lcl_main DEFINITION CREATE PRIVATE.
+
+  PUBLIC SECTION.
+
+    DATA: alv     TYPE REF TO cl_salv_table,
+          cols    TYPE REF TO cl_salv_columns,
+          columns TYPE REF TO cl_salv_columns_table.
+
+    TYPES: BEGIN OF ty_alv,
+             projeto        TYPE zdlpmt_003-id,
+             titulo         TYPE zdlpmt_003-titulo,
+             total_horas    TYPE int4,
+             total_apontado TYPE int4,
+             progresso      TYPE int4,
+             progresso_txt  TYPE string,
+             color          TYPE lvc_t_scol,
+           END OF ty_alv.
+    DATA: lt_alv TYPE TABLE OF ty_alv.
+
+    CLASS-METHODS create
+      RETURNING
+        VALUE(r_result) TYPE REF TO lcl_main.
+
+    METHODS: run,
+      get_data,
+      display_report,
+      set_fieldcat,
+      fieldcat_change
+        IMPORTING _column    TYPE lvc_fname
+                  _longtxt   TYPE scrtext_l          OPTIONAL
+                  _mediumtxt TYPE scrtext_m          OPTIONAL
+                  _position  TYPE int4               OPTIONAL
+                  _outputlen TYPE lvc_outlen         OPTIONAL
+                  _hidden    TYPE sap_bool           OPTIONAL
+                  _align     TYPE salv_de_alignment  OPTIONAL,
+      set_color.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+ENDCLASS.
+
+CLASS lcl_main IMPLEMENTATION.
+  METHOD create.
+    CREATE OBJECT r_result.
+  ENDMETHOD.
+
+  METHOD run.
+
+    get_data( ).
+    display_report( ).
+
+  ENDMETHOD.
+
+  METHOD get_data.
+
+    SELECT z003~id, z003~titulo, SUM( z007~hours_expected ) AS expected
+      FROM zdlpmt_003 AS z003
+      JOIN zdlpmt_007 AS z007 ON z003~id = z007~projeto
+      INTO TABLE @DATA(lt_project)
+       WHERE z003~id IN @s_proj
+      GROUP BY z003~id, z003~titulo.
+
+    IF lt_project[] IS NOT INITIAL.
+
+      SELECT z007~projeto, SUM( z009~horas ) AS horas
+        FROM zdlpmt_009 AS z009
+        JOIN zdlpmt_007 AS z007 ON z009~ticket = z007~id
+        INTO TABLE @DATA(lt_hours)
+        GROUP BY z007~projeto.
+
+    ENDIF.
+
+    LOOP AT lt_project REFERENCE INTO DATA(lrf_project).
+
+      DATA(ls_hour) = VALUE #( lt_hours[ projeto = lrf_project->id ] OPTIONAL ).
+
+      DATA(lv_progress) = ( ls_hour-horas * 100 ) / lrf_project->expected.
+
+      DATA(lv_color) = COND #( WHEN lv_progress < 50 THEN 3 WHEN lv_progress > 100 THEN 6 ELSE 5 ).
+      DATA(lt_color_column) = VALUE lvc_t_scol( ( fname = 'PROGRESSO_TXT' color-col = lv_color color-int = 0 color-inv = 0 ) ).
+
+      APPEND VALUE #( projeto         = lrf_project->id
+                      titulo          = lrf_project->titulo
+                      total_horas     = lrf_project->expected
+                      total_apontado  = ls_hour-horas
+                      progresso       = lv_progress
+                      progresso_txt   = |{ lv_progress }%|
+                      color           = lt_color_column ) TO lt_alv.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD display_report.
+
+    cl_salv_table=>factory(
+      IMPORTING
+        r_salv_table = alv
+      CHANGING
+        t_table      = lt_alv[] ).
+
+    set_fieldcat( ).
+    set_color( ).
+
+    DATA(lo_functions) = alv->get_functions( ).
+    lo_functions->set_all( ).
+
+    alv->display( ).
+
+  ENDMETHOD.
+
+  METHOD set_fieldcat.
+
+    cols = alv->get_columns( ).
+
+    fieldcat_change(
+      EXPORTING
+        _column   = 'PROJETO'
+        _longtxt  = 'Projeto'
+        _position = 1
+    ).
+
+    fieldcat_change(
+      EXPORTING
+        _column    = 'TITULO'
+        _longtxt   = 'Título'
+        _position  = 2
+        _outputlen = 25
+    ).
+
+    fieldcat_change(
+      EXPORTING
+        _column    = 'TOTAL_HORAS'
+        _longtxt   = 'Total Horas'
+        _position  = 3
+        _outputlen = 15
+        _align     = 3
+    ).
+
+    fieldcat_change(
+      EXPORTING
+        _column    = 'TOTAL_APONTADO'
+        _longtxt   = 'Total Apontado'
+        _position  = 4
+        _outputlen = 15
+        _align     = 3
+    ).
+
+    fieldcat_change(
+      EXPORTING
+        _column = 'PROGRESSO'
+        _hidden = abap_true
+    ).
+
+    fieldcat_change(
+      EXPORTING
+        _column    = 'PROGRESSO_TXT'
+        _longtxt   = 'Progresso %'
+        _position  = 5
+        _outputlen = 15
+        _align     = 3
+    ).
+
+  ENDMETHOD.
+
+  METHOD fieldcat_change.
+
+    DATA: column TYPE REF TO cl_salv_column.
+
+    column = cols->get_column( _column ).
+    column->set_long_text( _longtxt ).
+
+    IF _hidden IS NOT INITIAL.
+      column->set_visible( '' ).
+    ELSE.
+      column->set_visible( 'X' ).
+    ENDIF.
+
+    IF _mediumtxt IS INITIAL.
+      column->set_medium_text( _longtxt(20) ).
+      column->set_short_text( _longtxt(10) ).
+    ELSE.
+      column->set_medium_text( _mediumtxt ).
+      column->set_short_text( _mediumtxt(10) ).
+    ENDIF.
+
+    IF _align IS NOT INITIAL.
+      " 1 - Esquerda / 2 - Direita / 3 - Meio
+      column->set_alignment( _align ).
+    ENDIF.
+
+    column->set_output_length( _outputlen ).
+
+    cols->set_column_position( columnname = _column
+                               position   = _position ).
+
+  ENDMETHOD.
+
+  METHOD set_color.
+
+    columns = alv->get_columns( ).
+
+    TRY.
+        CALL METHOD columns->set_color_column
+          EXPORTING
+            value = 'COLOR'.
+      CATCH cx_salv_data_error.
+    ENDTRY.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+START-OF-SELECTION.
+  lcl_main=>create( )->run( ).
