@@ -1,39 +1,37 @@
 *&---------------------------------------------------------------------*
-*& Report YGDF1
+*& Report ZDLPMRP_002
 *&---------------------------------------------------------------------*
 *&
 *&---------------------------------------------------------------------*
-REPORT ygdf1.
+REPORT zdlpmrp_002.
 
 *- [ ]  ALV
-*    - [ ]  Projeto
-*        - [ ]  Navegando para Tela Projeto
-*        - [ ]  Botão para Finalizar Projeto
-*    - [ ]  % de Conclusão (Com Cor Vermelha (Até 30%), Amarela(Entre 31% e 99%) e Verde(100%))
-*    - [ ]  Total de Horas Estimadas
-*    - [ ]  Total de Horas Apontadas
+*    - [ ]  Equipe
+*    - [ ]  % de Eficácia (Com Cor Vermelha (Até 30%), Amarela(Entre 31% e 99%) e Verde(100%))
+*    - [ ]  Total Projetos
+*    - [ ]  Total Projetos Dentro e Fora do Prazo
 
-TABLES: zdlpmt_003, zdlpmt_009, zdlpmt_004.
+TABLES: zdlpmt_003, zdlpmt_004, zdlpmt_009.
 
 SELECTION-SCREEN BEGIN OF BLOCK b1
   WITH FRAME TITLE TEXT-001.
-  SELECT-OPTIONS: s_squad  FOR zdlpmt_004-id.
+  SELECT-OPTIONS: s_squad FOR zdlpmt_004-id.
 SELECTION-SCREEN END OF BLOCK b1.
 
 CLASS lcl_main DEFINITION CREATE PRIVATE.
 
   PUBLIC SECTION.
 
-    DATA: alv     TYPE REF TO cl_salv_table,
-          cols    TYPE REF TO cl_salv_columns,
-          columns TYPE REF TO cl_salv_columns_table.
+    " Variáveis de ALV
+    DATA: lo_alv  TYPE REF TO cl_salv_table,
+          lo_cols TYPE REF TO cl_salv_columns.
 
     TYPES: BEGIN OF ty_alv,
              equipe              TYPE zdlpmt_004-id,
              equipe_desc         TYPE zdlpmt_004-descricao,
              qtd_projetos        TYPE int4,
              projetos_prazo      TYPE int4,
-             projetos_atras      TYPE int4,
+             projetos_fora_prazo TYPE int4,
              eficacia_equipe     TYPE string,
              eficacia_equipe_txt TYPE string,
              color               TYPE lvc_t_scol,
@@ -44,7 +42,7 @@ CLASS lcl_main DEFINITION CREATE PRIVATE.
       RETURNING
         VALUE(r_result) TYPE REF TO lcl_main.
 
-    METHODS: run,
+    METHODS:  run,
       get_data,
       display_report,
       set_fieldcat,
@@ -77,22 +75,28 @@ CLASS lcl_main IMPLEMENTATION.
 
   METHOD get_data.
 
+    " Selecionar as equipes
     SELECT *
       FROM zdlpmt_004
       INTO TABLE @DATA(lt_squads)
       WHERE id IN @s_squad.
 
-    SELECT z003~id, z003~equipe, z003~titulo, SUM( z007~hours_expected ) AS expected
+    " Selecionar os Projetos e as Horas Estimadas
+    SELECT  z003~id,
+            z003~equipe,
+            SUM( z007~hours_expected ) AS expected
       FROM zdlpmt_003 AS z003
       JOIN zdlpmt_007 AS z007 ON z003~id     = z007~projeto
       JOIN zdlpmt_004 AS z004 ON z003~equipe = z004~id
       INTO TABLE @DATA(lt_projects)
        WHERE z003~equipe IN @s_squad
-      GROUP BY z003~id, z003~equipe, z003~titulo.
+      GROUP BY z003~id, z003~equipe.
 
+    " Selecionar o somatório das Horas Apontadas de Cada Projeto
     IF lt_projects[] IS NOT INITIAL.
 
-      SELECT z007~projeto, SUM( z009~horas ) AS horas
+      SELECT  z007~projeto,
+              SUM( z009~horas ) AS horas
         FROM zdlpmt_009 AS z009
         JOIN zdlpmt_007 AS z007 ON z009~ticket = z007~id
         INTO TABLE @DATA(lt_hours_by_project)
@@ -100,40 +104,55 @@ CLASS lcl_main IMPLEMENTATION.
 
     ENDIF.
 
-    LOOP AT lt_squads REFERENCE INTO DATA(ls_squads).
+    " Alimentar o ALV de Saída
+    LOOP AT lt_squads REFERENCE INTO DATA(lrf_squads).
 
-      DATA(lv_count_projects_by_squad) = REDUCE i( INIT count = 0
-                                                   FOR ls_project IN lt_projects
-                                                   WHERE ( equipe = ls_squads->id )
-                                                   NEXT count += 1 ).
+      " Quantidade de Projetos da Equipe
+      DATA(lv_qtd_projetos_equipe) = REDUCE i( INIT count = 0
+                                               FOR ls_project IN lt_projects
+                                               WHERE ( equipe = lrf_squads->id )
+                                               NEXT count += 1
+                                                ).
 
+      " Projetos no Prazo
+      " Projetos Etrasados
       DATA(lv_qtd_projetos_no_prazo)  = 0.
-      DATA(lv_qtd_projetos_atrasados) = 0.
-      LOOP AT lt_projects REFERENCE INTO DATA(lrf_project) WHERE equipe = ls_squads->id.
+      DATA(lv_qtd_projetos_fora_prazo) = 0.
 
+      LOOP AT lt_projects REFERENCE
+        INTO DATA(lrf_project)
+        WHERE equipe = lrf_squads->id.
+
+        " Total de Horas Apontadas no Projeto
         DATA(ls_hour) = VALUE #( lt_hours_by_project[ projeto = lrf_project->id ] OPTIONAL ).
 
-        IF ls_hour-horas < lrf_project->expected.
+        IF ls_hour-horas <= lrf_project->expected.
           lv_qtd_projetos_no_prazo += 1.
         ELSE.
-          lv_qtd_projetos_atrasados += 1.
+          lv_qtd_projetos_fora_prazo += 1.
         ENDIF.
+
+        CLEAR ls_hour.
 
       ENDLOOP.
 
-      DATA(lv_eficacia) = ( lv_qtd_projetos_no_prazo * 100 ) / lv_count_projects_by_squad.
+      DATA(lv_eficacia) = ( lv_qtd_projetos_no_prazo * 100 ) / lv_qtd_projetos_equipe.
 
-      DATA(lv_color) = COND #( WHEN lv_eficacia < 50 THEN 3 WHEN lv_eficacia > 100 THEN 6 ELSE 5 ).
-      DATA(lt_color_column) = VALUE lvc_t_scol( ( fname = 'EFICACIA_EQUIPE_TXT' color-col = lv_color color-int = 0 color-inv = 0 ) ).
+      DATA(lv_color) = COND #( WHEN lv_eficacia >= 1 AND lv_eficacia < 99 THEN 3 WHEN lv_eficacia = 100 THEN 5 ELSE 6 ).
+      DATA(lt_color_column) = VALUE lvc_t_scol(
+        ( fname = 'EFICACIA_EQUIPE_TXT' color-col = lv_color color-int = 0 color-inv = 0 )
+      ).
 
-      APPEND VALUE ty_alv(  equipe              = ls_squads->id
-                            equipe_desc         = ls_squads->descricao
-                            qtd_projetos        = lv_count_projects_by_squad
-                            projetos_prazo      = lv_qtd_projetos_no_prazo
-                            projetos_atras      = lv_qtd_projetos_atrasados
-                            eficacia_equipe     = lv_eficacia
-                            eficacia_equipe_txt = |{ lv_eficacia }%|
-                            color               = lt_color_column ) TO lt_alv.
+      APPEND VALUE ty_alv(
+        equipe              = lrf_squads->id
+        equipe_desc         = lrf_squads->descricao
+        qtd_projetos        = lv_qtd_projetos_equipe
+        projetos_prazo      = lv_qtd_projetos_no_prazo
+        projetos_fora_prazo = lv_qtd_projetos_fora_prazo
+        eficacia_equipe     = lv_eficacia
+        eficacia_equipe_txt = |{ lv_eficacia }%|
+        color               = lt_color_column
+      ) TO lt_alv.
 
     ENDLOOP.
 
@@ -143,23 +162,23 @@ CLASS lcl_main IMPLEMENTATION.
 
     cl_salv_table=>factory(
       IMPORTING
-        r_salv_table = alv
+        r_salv_table = lo_alv
       CHANGING
         t_table      = lt_alv[] ).
 
     set_fieldcat( ).
     set_color( ).
 
-    DATA(lo_functions) = alv->get_functions( ).
+    DATA(lo_functions) = lo_alv->get_functions( ).
     lo_functions->set_all( ).
 
-    alv->display( ).
+    lo_alv->display( ).
 
   ENDMETHOD.
 
   METHOD set_fieldcat.
 
-    cols = alv->get_columns( ).
+    lo_cols = lo_alv->get_columns( ).
 
     fieldcat_change(
       EXPORTING
@@ -196,8 +215,8 @@ CLASS lcl_main IMPLEMENTATION.
 
     fieldcat_change(
       EXPORTING
-        _column = 'PROJETOS_ATRAS'
-        _longtxt   = 'Projetos em Atraso'
+        _column    = 'PROJETOS_FORA_PRAZO'
+        _longtxt   = 'Projetos Fora Prazo'
         _position  = 5
         _outputlen = 15
         _align     = 3
@@ -224,7 +243,7 @@ CLASS lcl_main IMPLEMENTATION.
 
     DATA: column TYPE REF TO cl_salv_column.
 
-    column = cols->get_column( _column ).
+    column = lo_cols->get_column( _column ).
     column->set_long_text( _longtxt ).
 
     IF _hidden IS NOT INITIAL.
@@ -248,17 +267,17 @@ CLASS lcl_main IMPLEMENTATION.
 
     column->set_output_length( _outputlen ).
 
-    cols->set_column_position( columnname = _column
-                               position   = _position ).
+    lo_cols->set_column_position( columnname = _column
+                                  position   = _position ).
 
   ENDMETHOD.
 
   METHOD set_color.
 
-    columns = alv->get_columns( ).
+    DATA(lo_columns) = lo_alv->get_columns( ).
 
     TRY.
-        CALL METHOD columns->set_color_column
+        CALL METHOD lo_columns->set_color_column
           EXPORTING
             value = 'COLOR'.
       CATCH cx_salv_data_error.
